@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: dapp-wallet
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      pipeline.alpha.openshift.io/uses: '[{"name": "dapp-wallet", "kind": "DeploymentConfig"}]'
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet-pipeline
+  spec:
+    source:
+      git:
+        ref: develop
+        uri: https://github.com/OutThereLabs/meteor-dapp-wallet.git
+      type: Git
+    strategy:
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: Jenkinsfile
+      type: JenkinsPipeline
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: dapp-wallet:latest
+    source:
+      contextDir: /build
+      git:
+        ref: develop
+        uri: https://github.com/OutThereLabs/meteor-dapp-wallet.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: httpd:2.4
+          namespace: openshift
+      type: Source
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: dapp-wallet
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: dapp-wallet
+          deploymentconfig: dapp-wallet
+      spec:
+        containers:
+        - image: ' '
+          imagePullPolicy: Always
+          name: dapp-wallet
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: false
+        containerNames:
+        - dapp-wallet
+        from:
+          kind: ImageStreamTag
+          name: dapp-wallet:latest
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    selector:
+      deploymentconfig: dapp-wallet
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: dapp-wallet
+    name: dapp-wallet
+  spec:
+    port:
+      targetPort: http
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: dapp-wallet
