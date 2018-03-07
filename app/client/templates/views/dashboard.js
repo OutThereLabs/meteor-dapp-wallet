@@ -39,7 +39,7 @@ Template['views_dashboard'].helpers({
 
         return accounts;
     },
-    /** 
+    /**
     Are there any accounts?
 
     @method (hasAccounts)
@@ -47,13 +47,13 @@ Template['views_dashboard'].helpers({
     'hasAccounts' : function() {
         return (EthAccounts.find().count() > 0);
     },
-    /** 
+    /**
     Are there any accounts?
 
     @method (hasAccounts)
     */
     'hasMinimumBalance' : function() {
-        
+
         var enoughBalance = false;
         _.each(_.pluck(EthAccounts.find({}).fetch(), 'balance'), function(bal){
             if(new BigNumber(bal, '10').gt(10000000000000000)) enoughBalance = true;
@@ -71,7 +71,7 @@ Template['views_dashboard'].helpers({
     },
     /**
     Returns an array of pending confirmations, from all accounts
-    
+
     @method (pendingConfirmations)
     @return {Array}
     */
@@ -84,25 +84,41 @@ Template['views_dashboard'].helpers({
 Template['views_dashboard'].events({
     /**
     Request to create an account in mist
-    
+
     @event click .create.account
     */
     'click .create.account': function(e){
         e.preventDefault();
 
-        mist.requestAccount(function(e, accounts) {
-            if(!e) {
-                if(!_.isArray(accounts)) {
-                    accounts = [accounts];
-                }
-                accounts.forEach(function(account){                
-                    account = account.toLowerCase();
-                    EthAccounts.upsert({address: account}, {$set: {
-                        address: account,
-                        new: true
-                    }});
-                });
-            }
-        });
+        function guid() {
+          function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+              .toString(16)
+              .substring(1);
+          }
+          return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        var payload = {
+          account: {
+              id: guid(),
+              name: "Default"
+          }
+        };
+
+        var request = new XMLHttpRequest();
+        request.open('POST', 'https://api.bitski.com/v1/accounts');
+        request.setRequestHeader('Content-Type', 'application/json');
+        if (typeof (web3.currentProvider.currentUser) !== 'undefined' && web3.currentProvider.currentUser !== null) {
+          request.setRequestHeader('Authorization', "Bearer " + this.currentUser.access_token);
+        }
+        request.send(JSON.stringify(payload));
+        request.onreadystatechange = function() {
+          if (request.status == 200) {
+            location.reload();
+          } else {
+            alert("An error occured: "+request.response.error.message);
+          }
+        };
     }
 });
