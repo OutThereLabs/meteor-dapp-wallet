@@ -110,7 +110,7 @@ Template['views_dashboard'].events({
         request.open('POST', 'https://api.bitski.com/v1/accounts');
         request.setRequestHeader('Content-Type', 'application/json');
         if (typeof (web3.currentProvider.currentUser) !== 'undefined' && web3.currentProvider.currentUser !== null) {
-          request.setRequestHeader('Authorization', "Bearer " + this.currentUser.access_token);
+          request.setRequestHeader('Authorization', "Bearer " + web3.currentProvider.currentUser.access_token);
         }
         request.send(JSON.stringify(payload));
         request.onreadystatechange = function() {
