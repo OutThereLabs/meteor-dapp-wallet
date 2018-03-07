@@ -114,10 +114,10 @@ Template['views_dashboard'].events({
         }
         request.send(JSON.stringify(payload));
         request.onreadystatechange = function() {
-          if (request.status == 200) {
+          if (request.status >= 200 && request.status < 300) {
             location.reload();
           } else {
-            alert("An error occured: "+request.response.error.message);
+            alert("An error occured: "+request.response.error);
           }
         };
     }
