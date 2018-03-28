@@ -1,10 +1,24 @@
 // set providor
+
+var bitskiInstance;
+var network;
+
 if (Meteor.isDevelopment) {
-  web3 = new Web3(bitski.InitializeWeb3('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QkO', 'kovan', 'http://localhost:3000/').currentProvider);
+  bitskiInstance = new bitski.Bitski('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QkO', 'http://localhost:3000/');
+  network = 'kovan';
 } else if (window.location.host.match('kovan')) {
-  web3 = new Web3(bitski.InitializeWeb3('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaC', 'kovan', 'https://kovan-wallet.bitski.com/').currentProvider);
+  bitskiInstance = new bitski.Bitski('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaC', 'https://kovan-wallet.bitski.com/');
+  network = 'kovan';
 } else if (window.location.host.match('rinkeby')) {
-  web3 = new Web3(bitski.InitializeWeb3('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaB', 'rinkeby', 'https://rinkeby-wallet.bitski.com/').currentProvider);
+  bitskiInstance = new bitski.Bitski('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaB', 'https://rinkeby-wallet.bitski.com/');
+  network = 'rinkeby';
 } else {
-  web3 = new Web3(bitski.InitializeWeb3('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaA', 'mainnet', 'https://wallet.bitski.com/').currentProvider);
+  bitskiInstance = new bitski.Bitski('F3YKmUz8wJPevbjd0LJOfSTkg4IiwWlcypE6AdBXweui1lhjC1kcGDgBCub35QaA', 'https://wallet.bitski.com/');
+  network = 'mainnet';
 }
+
+var provider = bitskiInstance.getProvider(network);
+provider.locked = false;
+
+web3 = new Web3(provider);
+
